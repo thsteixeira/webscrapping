@@ -82,7 +82,7 @@ class Application(tk.Frame):
                                        command=self.pesquisar)
         self.btn_pesquisar.pack(side="right", padx="5", pady="5")
         self.entry_pesquisa_stringvar = tk.StringVar()
-        self.entry_pesquisa = tk.Entry(self.canvas_head,
+        self.entry_pesquisa = ttk.Combobox(self.canvas_head,
                                        takefocus=False,
                                        textvariable=self.entry_pesquisa_stringvar)
         self.entry_pesquisa.pack(side="right", padx="5", pady="5")
@@ -131,6 +131,8 @@ class Application(tk.Frame):
             pass
         self.processos_visualizados = set()
         self.processos_selecionados = set()
+        self.termos_pesquisados = set()
+        self.entry_pesquisa["values"] = list(self.termos_pesquisados)
         self.actualpath = os.getcwd()
         self.path = filedialog.askopenfilename(initialdir=self.actualpath,
                                                title='Escolha uma pasta',
@@ -155,6 +157,8 @@ class Application(tk.Frame):
         self.checkbutton_selected_intvar.set(0)
         self.processos_visualizados = set()
         self.processos_selecionados = set()
+        self.termos_pesquisados = set()
+        self.entry_pesquisa["values"] = list(self.termos_pesquisados)
         self.btn_exportar_change()
         self.listbox_processos.delete(0, tk.END)
         self.text_andamentos.config(state="normal")
@@ -217,7 +221,10 @@ class Application(tk.Frame):
         #self.listbox_processos.focus_set()
         self.lbl_pesquisa.config(text="Você está pesquisando pelo termo '" + self.str_pesquisa + "'")
         self.lbl_qnt_processos.config(text="Foram encontrados " + str(len(self.resultado_pesquisa)) + " processos")
-        self.marcar_processos_selecionados_e_vistos()              
+        self.marcar_processos_selecionados_e_vistos()
+        #ADICIONA O TERMO PESQUISADO AO COMBOBOX DA PESQUISA
+        self.termos_pesquisados.add(self.str_pesquisa)
+        self.entry_pesquisa["values"] = list(self.termos_pesquisados)
 
     def highlight_pesquisa(self):
         #SINALIZA DE AMARELO O TEXTO PESQUISADO NOS ANDAMENTOS
