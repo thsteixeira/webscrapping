@@ -1,10 +1,11 @@
 import os
 import sqlite3
+from traceback import print_exc
+from openpyxl import Workbook
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
-from openpyxl import Workbook
 
 class Application(tk.Frame):
     """CLASSE PARA ABRIR BANCO DE DADOS EM SQLITE COM ANDAMENTO DOS PROCESSOS PESQUISADOS PELA 
@@ -27,11 +28,16 @@ class Application(tk.Frame):
         self.menubar.add_cascade(label="Arquivo", menu=menu)
         menu.add_command(label="Abrir banco de dados", command=self.open_db)
         menu.add_command(label="Fechar banco de dados", command=self.close_db)
+        menu.add_separator()
+        menu.add_command(label="Abrir pesquisa", command=self.abrir_pesquisa)
+        menu.add_command(label="Salvar pesquisa", command=self.salvar_pesquisa)
+        menu.add_command(label="Excluir pesquisa", command=self.excluir_pesquisa)
         try:
             self.master.config(menu=self.menubar)
         except AttributeError:
             # master is a toplevel window (Python 1.4/Tkinter 1.63)
             self.master.tk.call(master, "config", "-menu", self.menubar)
+            print_exc()
 
         #CANVAS FOOTER
         self.canvas_footer = tk.Canvas(self)
@@ -152,7 +158,6 @@ class Application(tk.Frame):
 
     def close_db(self):
         #FECHA O BANCO DE DADOS SQLITE ATUAL
-        self.conn.commit()
         self.conn.close()
         self.checkbutton_selected_intvar.set(0)
         self.processos_visualizados = set()
@@ -169,6 +174,109 @@ class Application(tk.Frame):
         self.lbl_db.config(text="")
         self.lbl_pesquisa.config(text="")
         self.lbl_qnt_processos.config(text="")
+
+    def salvar_pesquisa(self):
+        #SALVA UMA PESQUISA REALIZADA NO BANCO DE DADOS
+        if len(self.processos_selecionados) == 0 and len(self.processos_visualizados) == 0:
+            #NÃO EXECUTA SE NENHUM PROCESSO FOI VISTO OU SELECIONADO
+            messagebox.showwarning("Salvar pesquisa", "Nenhum processo foi visto ou selecionado!")
+            return
+        if len(self.processos_selecionados) != 0:
+            #SALVA OS PROCESSOS SELECIONADOS
+            try:
+                self.cur.execute('''CREATE TABLE IF NOT EXISTS processos_selecionados
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    numero_processo TEXT UNIQUE)''')
+            except:
+                print_exc()
+                pass
+            for processo in self.processos_selecionados:
+                try:
+                    self.cur.execute("""INSERT INTO processos_selecionados (numero_processo) VALUES
+                        (?)""", (processo,))
+                except:
+                    print_exc()
+                    pass
+            self.conn.commit()
+        if len(self.processos_visualizados) != 0:
+            #SALVA OS PROCESSOS VISUALIZADOS
+            try:
+                self.cur.execute('''CREATE TABLE IF NOT EXISTS processos_visualizados
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    numero_processo TEXT UNIQUE)''')
+            except:
+                print_exc()
+                pass
+            for processo in self.processos_visualizados:
+                try:
+                    self.cur.execute("""INSERT INTO processos_visualizados (numero_processo) VALUES
+                        (?)""", (processo,))
+                except:
+                    print_exc()
+                    pass
+                self.conn.commit()
+        messagebox.showinfo("Salvar pesquisa", "Pesquisa salva com sucesso!")
+
+    def abrir_pesquisa(self):
+        #ABRE UMA PESQUISA ANTERIORMENTE SALVA
+        self.open_db()
+        #CHECA SE AS TABELAS EXISTEM
+        try:
+            self.cur.execute('''SELECT name FROM sqlite_master WHERE type='table' ''')
+            tabelas = self.cur.fetchall()
+            tabelas = [elt[0] for elt in tabelas]
+        except:
+            pass
+        if "processos_selecionados" not in tabelas and "processos_visualizados" not in tabelas:
+            messagebox.showwarning("Abrir pesquisa", "Não há pesquisa salva neste banco de dados!")
+            self.close_db()
+            return
+        #ABRE A PESQUISA
+        if "processos_selecionados" in tabelas:
+            try:
+                self.cur.execute('''SELECT numero_processo FROM processos_selecionados''')
+                pesquisa_selecionados = self.cur.fetchall()
+                for processo, in pesquisa_selecionados:
+                    self.processos_selecionados.add(processo)
+            except:
+                print_exc()
+                pass
+        if "processos_visualizados" in tabelas:
+            try:
+                self.cur.execute('''SELECT numero_processo FROM processos_visualizados''')
+                pesquisa_visualizados = self.cur.fetchall()
+                for processo, in pesquisa_visualizados:
+                    self.processos_visualizados.add(processo)
+            except:
+                print_exc()
+                pass
+        self.marcar_processos_selecionados_e_vistos()
+
+    def excluir_pesquisa(self):
+        #EXCLUI UMA PESQUISA ANTERIORMENTE SALVA
+        self.open_db()
+        #CHECA SE AS TABELAS EXISTEM
+        try:
+            self.cur.execute('''SELECT name FROM sqlite_master WHERE type='table' ''')
+            tabelas = self.cur.fetchall()
+            tabelas = [elt[0] for elt in tabelas]
+            if "processos_selecionados" not in tabelas and "processos_visualizados" not in tabelas:
+                messagebox.showwarning("Excluir pesquisa", "Não há pesquisa salva neste banco de dados!")
+                self.close_db()
+                return
+        except:
+            print_exc()
+            pass
+        #CASO EXISTAM, EXCLUI AS TABELAS
+        try:
+            self.cur.execute('''DROP TABLE IF EXISTS processos_selecionados''')
+            self.cur.execute('''DROP TABLE IF EXISTS processos_visualizados''')
+            self.conn.commit()
+            messagebox.showinfo("Excluir pesquisa", "Pesquisa excluída com sucesso!")
+        except:
+            print_exc()
+            pass
+        self.close_db()
 
     def selected_listbox(self, event):
         #ABRE A MOVIMENTAÇÃO DO PROCESSO SELECIONADO
