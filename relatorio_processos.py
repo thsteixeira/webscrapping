@@ -37,30 +37,7 @@ class Application(tk.Frame):
         except AttributeError:
             # master is a toplevel window (Python 1.4/Tkinter 1.63)
             self.master.tk.call(master, "config", "-menu", self.menubar)
-            print_exc()
-
-        #CANVAS FOOTER
-        self.canvas_footer = tk.Canvas(self)
-        self.canvas_footer.pack(side="bottom", fill="x", padx="5", pady="5")
-        self.lbl_vara = tk.Label(self.canvas_footer, text="Vara: ", width=30, anchor="w")
-        self.lbl_vara.pack(side="left", padx="5", pady="5")
-        self.lbl_dias = tk.Label(self.canvas_footer,
-                                 text="Última movimentação há: ",
-                                 width=30, anchor="w")
-        self.lbl_dias.pack(side="left", padx="5", pady="5")
-        self.checkbutton_selected_intvar = tk.IntVar()
-        self.checkbutton_selected = tk.Checkbutton(self.canvas_footer,
-                                                   text="Processo selecionado",
-                                                   variable=self.checkbutton_selected_intvar,
-                                                   command=self.selecionar_processo,
-                                                   takefocus=False)
-        self.checkbutton_selected.pack(side="left", padx="5", pady="5")
-        self.master.bind_all('<space>', self.toggle_checkbutton)
-        self.btn_exportar = tk.Button(self.canvas_footer,
-                                      command=self.exportar,
-                                      takefocus=False)
-        self.btn_exportar_change()
-        self.btn_exportar.pack(side="left", padx="5", pady="5")
+            print_exc()        
 
         #CANVAS HEADER ESQUERDA
         self.canvas_head = tk.Canvas(self)
@@ -95,6 +72,33 @@ class Application(tk.Frame):
         self.entry_pesquisa.bind('<Return>', lambda event: self.pesquisar())
         self.separator3 = ttk.Separator(self.canvas_head, orient="vertical")
         self.separator3.pack(side="right", fill="y")
+
+        #SEPARADOR CABEÇALHO
+        self.separator_header = ttk.Separator(self, orient="horizontal")
+        self.separator_header.pack(side="top", fill="x")
+
+        #CANVAS HEADER 2
+        self.canvas_head2 = tk.Canvas(self)
+        self.canvas_head2.pack(side="top", fill="x", padx="5", pady="5")
+        self.lbl_vara = tk.Label(self.canvas_head2, text="Vara: ", width=30, anchor="w")
+        self.lbl_vara.pack(side="left", padx="5", pady="5")
+        self.lbl_dias = tk.Label(self.canvas_head2,
+                                 text="Última movimentação há: ",
+                                 width=30, anchor="w")
+        self.lbl_dias.pack(side="left", padx="5", pady="5")
+        self.checkbutton_selected_intvar = tk.IntVar()
+        self.checkbutton_selected = tk.Checkbutton(self.canvas_head2,
+                                                   text="Processo selecionado",
+                                                   variable=self.checkbutton_selected_intvar,
+                                                   command=self.selecionar_processo,
+                                                   takefocus=False)
+        self.checkbutton_selected.pack(side="left", padx="5", pady="5")
+        self.master.bind_all('<space>', self.toggle_checkbutton)
+        self.btn_exportar = tk.Button(self.canvas_head2,
+                                      command=self.exportar,
+                                      takefocus=False)
+        self.btn_exportar_change()
+        self.btn_exportar.pack(side="left", padx="5", pady="5")
 
         #CANVAS LISTBOX
         self.canvas_listbox = tk.Canvas(self)
