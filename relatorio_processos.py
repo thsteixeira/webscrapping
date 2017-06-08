@@ -2,6 +2,7 @@ import os
 import sqlite3
 from traceback import print_exc
 from openpyxl import Workbook
+from unidecode import unidecode
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
@@ -55,19 +56,19 @@ class Application(tk.Frame):
 
         #CANVAS HEADER DIREITA
         self.btn_limpar_pesquisa = tk.Button(self.canvas_head,
-                                             text="Limpar",
-                                             takefocus=False,
-                                             command=self.limpar_pesquisa)
+            text="Limpar",
+            takefocus=False,
+            command=self.limpar_pesquisa)
         self.btn_limpar_pesquisa.pack(side="right", padx="5", pady="5")
         self.btn_pesquisar = tk.Button(self.canvas_head,
-                                       text="Pesquisar",
-                                       takefocus=False,
-                                       command=self.pesquisar)
+            text="Pesquisar",
+            takefocus=False,
+            command=self.pesquisar)
         self.btn_pesquisar.pack(side="right", padx="5", pady="5")
         self.entry_pesquisa_stringvar = tk.StringVar()
-        self.entry_pesquisa = ttk.Combobox(self.canvas_head,
-                                       takefocus=False,
-                                       textvariable=self.entry_pesquisa_stringvar)
+        self.entry_pesquisa = ttk.Combobox(self.canvas_head, 
+            takefocus=False,
+            textvariable=self.entry_pesquisa_stringvar)
         self.entry_pesquisa.pack(side="right", padx="5", pady="5")
         self.entry_pesquisa.bind('<Return>', lambda event: self.pesquisar())
         self.separator3 = ttk.Separator(self.canvas_head, orient="vertical")
@@ -83,36 +84,36 @@ class Application(tk.Frame):
         self.lbl_vara = tk.Label(self.canvas_head2, text="Vara: ", width=30, anchor="w")
         self.lbl_vara.pack(side="left", padx="5", pady="5")
         self.lbl_dias = tk.Label(self.canvas_head2,
-                                 text="Última movimentação há: ",
-                                 width=30, anchor="w")
+            text="Última movimentação há: ",
+            width=30, anchor="w")
         self.lbl_dias.pack(side="left", padx="5", pady="5")
         self.checkbutton_selected_intvar = tk.IntVar()
         self.checkbutton_selected = tk.Checkbutton(self.canvas_head2,
-                                                   text="Processo selecionado",
-                                                   variable=self.checkbutton_selected_intvar,
-                                                   command=self.selecionar_processo,
-                                                   takefocus=False)
+            text="Processo selecionado",
+            variable=self.checkbutton_selected_intvar,
+            command=self.selecionar_processo,
+            takefocus=False)
         self.checkbutton_selected.pack(side="left", padx="5", pady="5")
         self.master.bind_all('<space>', self.toggle_checkbutton)
         self.btn_exportar = tk.Button(self.canvas_head2,
-                                      command=self.exportar,
-                                      takefocus=False)
+            command=self.exportar,
+            takefocus=False)
         self.btn_exportar_change()
         self.btn_exportar.pack(side="left", padx="5", pady="5")
 
         #CANVAS LISTBOX
         self.canvas_listbox = tk.Canvas(self)
         self.canvas_listbox.pack(side="left",
-                                 anchor="w",
-                                 fill="y",
-                                 expand=False,
-                                 padx="10",
-                                 pady="10")
+            anchor="w",
+            fill="y",
+            expand=False,
+            padx="10",
+            pady="10")
         self.listbox_processos = tk.Listbox(self.canvas_listbox, width=30)
         self.listbox_processos.pack(side="left", fill="y", expand=False)
         self.scrollbar_lista_processos = tk.Scrollbar(self.canvas_listbox,
-                                                      takefocus=False,
-                                                      orient="vertical")
+            takefocus=False,
+            orient="vertical")
         self.scrollbar_lista_processos.config(command=self.listbox_processos.yview)
         self.scrollbar_lista_processos.pack(side="right", fill="y")
         self.listbox_processos.config(yscrollcommand=self.scrollbar_lista_processos.set)
@@ -121,17 +122,17 @@ class Application(tk.Frame):
         #CANVAS TEXT
         self.canvas_text = tk.Canvas(self)
         self.canvas_text.pack(side="left",
-                              fill="both",
-                              expand=True,
-                              padx="10",
-                              pady="10")
+            fill="both",
+            expand=True,
+            padx="10",
+            pady="10")
         self.text_andamentos = tk.Text(self.canvas_text)
         self.text_andamentos.pack(side="left", fill="both", expand=True)
         self.scrollbar_andamentos = tk.Scrollbar(self.canvas_text, orient="vertical")
         self.scrollbar_andamentos.config(command=self.text_andamentos.yview)
         self.scrollbar_andamentos.pack(side="right", fill="y")
         self.text_andamentos.config(yscrollcommand=self.scrollbar_andamentos.set,
-                                    state="disabled")
+            state="disabled")
 
     def open_db(self):
         #ABRE UM NOVO BANCO DE DADOS SQLITE
@@ -145,9 +146,9 @@ class Application(tk.Frame):
         self.entry_pesquisa["values"] = list(self.termos_pesquisados)
         self.actualpath = os.getcwd()
         self.path = filedialog.askopenfilename(initialdir=self.actualpath,
-                                               title='Escolha uma pasta',
-                                               defaultextension=".db",
-                                               filetypes=[('banco de dados','.db')])
+            title='Escolha uma pasta',
+            defaultextension=".db",
+            filetypes=[('banco de dados','.db')])
         self.conn = sqlite3.connect(self.path)
         self.cur = self.conn.cursor()
         self.cur.execute('''SELECT numero_processo FROM processos ORDER BY dias_parados DESC''')
@@ -218,7 +219,24 @@ class Application(tk.Frame):
                 except:
                     print_exc()
                     pass
-                self.conn.commit()
+            self.conn.commit()
+        if len(self.termos_pesquisados) != 0:
+            #SALVA OS TERMOS PESQUISADOS
+            try:
+                self.cur.execute('''CREATE TABLE IF NOT EXISTS termos_pesquisados
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    termo_pesquisado TEXT UNIQUE)''')
+            except:
+                print_exc()
+                pass
+            for termo in self.termos_pesquisados:
+                try:
+                    self.cur.execute("""INSERT INTO termos_pesquisados (termo_pesquisado) VALUES
+                        (?)""", (termo,))
+                except:
+                    print_exc()
+                    pass
+            self.conn.commit()
         messagebox.showinfo("Salvar pesquisa", "Pesquisa salva com sucesso!")
 
     def abrir_pesquisa(self):
@@ -254,6 +272,16 @@ class Application(tk.Frame):
             except:
                 print_exc()
                 pass
+        if "termos_pesquisados" in tabelas:
+            try:
+                self.cur.execute('''SELECT termo_pesquisado FROM termos_pesquisados''')
+                pesquisa_termos = self.cur.fetchall()
+                for termo, in pesquisa_termos:
+                    self.termos_pesquisados.add(termo)
+                self.entry_pesquisa["values"] = list(self.termos_pesquisados)
+            except:
+                print_exc()
+                pass
         self.marcar_processos_selecionados_e_vistos()
 
     def excluir_pesquisa(self):
@@ -275,6 +303,7 @@ class Application(tk.Frame):
         try:
             self.cur.execute('''DROP TABLE IF EXISTS processos_selecionados''')
             self.cur.execute('''DROP TABLE IF EXISTS processos_visualizados''')
+            self.cur.execute('''DROP TABLE IF EXISTS termos_pesquisados''')
             self.conn.commit()
             messagebox.showinfo("Excluir pesquisa", "Pesquisa excluída com sucesso!")
         except:
@@ -319,10 +348,11 @@ class Application(tk.Frame):
         self.btn_exportar_change()
         self.str_pesquisa = self.entry_pesquisa_stringvar.get()
         self.cur.execute("""SELECT DISTINCT a.numero_processo 
-                        FROM andamentos AS a JOIN processos AS p 
-                        ON p.numero_processo = a.numero_processo
-                        WHERE a.andamento LIKE ? ORDER BY p.dias_parados DESC""",
-                         ('%'+self.str_pesquisa+'%',))
+            FROM andamentos AS a JOIN processos AS p 
+            ON p.numero_processo = a.numero_processo
+            WHERE a.andamento LIKE ? OR a.andamento LIKE ?
+            ORDER BY p.dias_parados DESC""",
+            ('%'+unidecode(self.str_pesquisa)+'%', '%'+self.str_pesquisa+'%'))
         self.resultado_pesquisa = self.cur.fetchall()
         #print(self.resultado_pesquisa)
         self.listbox_processos.delete(0, tk.END)

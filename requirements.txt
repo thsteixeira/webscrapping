@@ -10,3 +10,4 @@ pyparsing==2.2.0
 pytesseract==0.1.6
 selenium==3.4.1
 six==1.10.0
+Unidecode==0.4.20
