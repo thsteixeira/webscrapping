@@ -373,6 +373,8 @@ class Application(tk.Frame):
         self.str_pesquisa = self.entry_pesquisa_stringvar.get()
         if self.str_pesquisa != "":
             self.start_pos = self.text_andamentos.search(self.str_pesquisa, '1.0', stopindex=tk.END, nocase=True)
+            if not self.start_pos:
+                self.start_pos = self.text_andamentos.search(unidecode(self.str_pesquisa), '1.0', stopindex=tk.END, nocase=True)
             #print(self.start_pos)
             if self.start_pos:
                 self.end_pos = '{}+{}c'.format(self.start_pos, len(self.str_pesquisa))
