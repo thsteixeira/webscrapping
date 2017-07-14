@@ -40,7 +40,7 @@ class PesquisarProcessoJurisconsult():
             self.contador = 1
             self.message = ""
             for processo, in self.lista_processos:
-                if (processo.value.startswith("08")) and (len(str(processo.value))>10):
+                if (str(processo.value).startswith("08")) and (len(str(processo.value))>10):
                     continue
                 while True:
                     if self.tipo_de_processo == "primeiro_grau":
@@ -316,12 +316,13 @@ class PesquisarProcessoPJE():
 
 
 if __name__ == '__main__':
-    wb = load_workbook(filename='excel/processos_reclassificação_jun_2017.xlsx', read_only=True)
-    ws = wb[wb.sheetnames[0]]
-    range = ws['C1592':'C2659']
+    wb = load_workbook(filename='excel/PRECATORIOS a partir de 2012 - 14 jul 2017.xlsx', read_only=True)
+    #ws = wb[wb.sheetnames[0]]
+    ws = wb['TODOS']
+    range = ws['A455':'A672']
     IncluirPush = PesquisarProcessoJurisconsult(lista_processos=range,
-                                            tipo_de_processo="primeiro_grau",
-                                            diretorio='processos_reclassificação_jun_2017')
+                                            tipo_de_processo="precatorio",
+                                            diretorio='PRECATORIOS a partir de 2012 - 14 jul 2017')
 
     # wb = load_workbook(filename='excel/processos_descompressão_pje_mai_2017.xlsx', read_only=True)
     # ws = wb['PJE']
