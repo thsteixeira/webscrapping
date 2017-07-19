@@ -316,13 +316,13 @@ class PesquisarProcessoPJE():
 
 
 if __name__ == '__main__':
-    wb = load_workbook(filename='excel/PRECATORIOS a partir de 2012 - 14 jul 2017.xlsx', read_only=True)
+    wb = load_workbook(filename='excel/PRECATORIOS a partir de 2012 - 17 jul 2017.xlsx', read_only=True)
     #ws = wb[wb.sheetnames[0]]
     ws = wb['TODOS']
-    range = ws['A455':'A672']
+    range = ws['A1':'A672']
     IncluirPush = PesquisarProcessoJurisconsult(lista_processos=range,
                                             tipo_de_processo="precatorio",
-                                            diretorio='PRECATORIOS a partir de 2012 - 14 jul 2017')
+                                            diretorio='PRECATORIOS a partir de 2012 - 17 jul 2017')
 
     # wb = load_workbook(filename='excel/processos_descompressão_pje_mai_2017.xlsx', read_only=True)
     # ws = wb['PJE']
