@@ -31,10 +31,10 @@ class PesquisarProcessoJurisconsult():
         self.driver = webdriver.Chrome('chromedriver.exe')
         self.driver.get('http://jurisconsult.tjma.jus.br')
         self.driver.implicitly_wait(3)
-        if not os.path.exists(self.diretorio):
-            os.makedirs(self.diretorio)
-            os.makedirs(self.diretorio + "/html")
-            os.makedirs(self.diretorio + "/error")
+        if not os.path.exists("data/" + self.diretorio):
+            os.makedirs("data/" + self.diretorio)
+            os.makedirs("data/" + self.diretorio + "/html")
+            os.makedirs("data/" + self.diretorio + "/error")
         self.open_db()
         try:
             self.contador = 1
@@ -53,7 +53,7 @@ class PesquisarProcessoJurisconsult():
                         break
                 if "Consulta realizada com sucesso" in self.message:
                     self.html = self.driver.page_source
-                    with open(self.diretorio+'/html/' + str(processo.value) + '.html', 'w') as escrita:
+                    with open("data/" + self.diretorio+'/html/' + str(processo.value) + '.html', 'w') as escrita:
                         escrita.write(self.html)
                     self.salva_banco(self.html, processo.value, self.message)
                 self.contador = self.contador + 1
@@ -61,10 +61,10 @@ class PesquisarProcessoJurisconsult():
             if self.is_connected() == False:
                 print("Sem conexão com a internet!")
             else:
-                self.driver.save_screenshot(self.diretorio+"/error/last_exception.png")
+                self.driver.save_screenshot("data/" + self.diretorio+"/error/last_exception.png")
                 print_exc()
         except:
-            self.driver.save_screenshot(self.diretorio + "/error/last_exception.png")
+            self.driver.save_screenshot("data/" + self.diretorio + "/error/last_exception.png")
             print_exc()
         finally:
             self.conn.commit()
@@ -82,7 +82,7 @@ class PesquisarProcessoJurisconsult():
         return False
 
     def open_db(self):
-        self.conn = sqlite3.connect(self.diretorio + '/' + self.diretorio + '.db')
+        self.conn = sqlite3.connect("data/" + self.diretorio + '/' + self.diretorio + '.db')
         self.cur = self.conn.cursor()
         self.cur.execute('''CREATE TABLE IF NOT EXISTS processos
                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -114,8 +114,8 @@ class PesquisarProcessoJurisconsult():
             self.message = ""
         print("Processo:", numero, "-", self.message)
         if self.message == "Informação, da imagem, não coincide. Favor digite novamente!":
-            copyfile(self.diretorio+"/captcha_" + str(numero) + ".png", self.diretorio+"/error/captcha_" + str(numero) + ".png")
-        os.remove(self.diretorio+"/captcha_" + str(numero) + ".png")
+            copyfile("data/" + self.diretorio + "/captcha_" + str(numero) + ".png", "data/" + self.diretorio + "/error/captcha_" + str(numero) + ".png")
+        os.remove("data/" + self.diretorio + "/captcha_" + str(numero) + ".png")
 
     def inserir_numero_precatorio(self, numero):
         numero = str(numero).strip()
@@ -136,8 +136,8 @@ class PesquisarProcessoJurisconsult():
         print("Processo:", numero, "-", self.message)
 
     def handle_captcha_jurisconsult(self, img, numero):
-        self.screenshot_filename = self.diretorio + "/screenshot_" + str(numero) + ".png"
-        self.captcha_filename = self.diretorio + "/captcha_" + str(numero) + ".png"
+        self.screenshot_filename = "data/" + self.diretorio + "/screenshot_" + str(numero) + ".png"
+        self.captcha_filename = "data/" + self.diretorio + "/captcha_" + str(numero) + ".png"
         self.location = img.location
         self.size = img.size
         self.driver.save_screenshot(self.screenshot_filename)
@@ -190,9 +190,9 @@ class PesquisarProcessoPJE():
         self.driver.get('https://pje.tjma.jus.br/pje/ConsultaPublica/listView.seam')
         self.driver.implicitly_wait(3)
         if not os.path.exists(self.diretorio):
-            os.makedirs(self.diretorio)
-            os.makedirs(self.diretorio + "/html")
-            os.makedirs(self.diretorio + "/error")
+            os.makedirs("data/" + self.diretorio)
+            os.makedirs("data/" + self.diretorio + "/html")
+            os.makedirs("data/" + self.diretorio + "/error")
         self.open_db()
         try:
             self.contador = 1
@@ -208,7 +208,7 @@ class PesquisarProcessoPJE():
                     self.html = self.driver.page_source
                     self.driver.close()
                     self.driver.switch_to_window(self.driver.window_handles[0])
-                    with open(self.diretorio+'/html/' + str(processo.value) + '.html', 'w') as escrita:
+                    with open("data/" + self.diretorio + '/html/' + str(processo.value) + '.html', 'w') as escrita:
                         escrita.write(self.html)
                     self.salva_banco(self.html, processo.value, self.message)
                 self.contador = self.contador + 1
@@ -216,10 +216,10 @@ class PesquisarProcessoPJE():
             if self.is_connected() == False:
                 print("Sem conexão com a internet!")
             else:
-                self.driver.save_screenshot(self.diretorio+"/error/last_exception.png")
+                self.driver.save_screenshot("data/" + self.diretorio + "/error/last_exception.png")
                 print_exc()
         except:
-            self.driver.save_screenshot(self.diretorio + "/error/last_exception.png")
+            self.driver.save_screenshot("data/" + self.diretorio + "/error/last_exception.png")
             print_exc()
         finally:
             self.conn.commit()
@@ -237,7 +237,7 @@ class PesquisarProcessoPJE():
         return False
 
     def open_db(self):
-        self.conn = sqlite3.connect(self.diretorio + '/' + self.diretorio + '.db')
+        self.conn = sqlite3.connect("data/" + self.diretorio + '/' + self.diretorio + '.db')
         self.cur = self.conn.cursor()
         self.cur.execute('''CREATE TABLE IF NOT EXISTS processos
                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -271,12 +271,12 @@ class PesquisarProcessoPJE():
             pass
         print("Processo:", numero, "-", self.message)
         if self.message == "Resposta incorreta.":
-            copyfile(self.diretorio+"/captcha_" + str(numero) + ".png", self.diretorio+"/error/captcha_" + str(numero) + ".png")
-        os.remove(self.diretorio+"/captcha_" + str(numero) + ".png")
+            copyfile("data/" + self.diretorio+"/captcha_" + str(numero) + ".png", self.diretorio + "/error/captcha_" + str(numero) + ".png")
+        os.remove("data/" + self.diretorio+"/captcha_" + str(numero) + ".png")
 
     def handle_captcha_pje(self, img, numero):
-        self.screenshot_filename = self.diretorio + "/screenshot_" + str(numero) + ".png"
-        self.captcha_filename = self.diretorio + "/captcha_" + str(numero) + ".png"
+        self.screenshot_filename = "data/" + self.diretorio + "/screenshot_" + str(numero) + ".png"
+        self.captcha_filename = "data/" + self.diretorio + "/captcha_" + str(numero) + ".png"
         self.location = img.location
         self.size = img.size
         self.driver.save_screenshot(self.screenshot_filename)
@@ -316,13 +316,13 @@ class PesquisarProcessoPJE():
 
 
 if __name__ == '__main__':
-    wb = load_workbook(filename='excel/PRECATORIOS a partir de 2012 - 17 jul 2017.xlsx', read_only=True)
+    wb = load_workbook(filename='excel/PRECATORIOS a partir de 2012 - 24 jul 2017.xlsx', read_only=True)
     #ws = wb[wb.sheetnames[0]]
     ws = wb['TODOS']
-    range = ws['A1':'A672']
+    range = ws['A635':'A672']
     IncluirPush = PesquisarProcessoJurisconsult(lista_processos=range,
                                             tipo_de_processo="precatorio",
-                                            diretorio='PRECATORIOS a partir de 2012 - 17 jul 2017')
+                                            diretorio='PRECATORIOS a partir de 2012 - 24 jul 2017')
 
     # wb = load_workbook(filename='excel/processos_descompressão_pje_mai_2017.xlsx', read_only=True)
     # ws = wb['PJE']
