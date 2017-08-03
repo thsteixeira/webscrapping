@@ -5,7 +5,7 @@ from openpyxl import Workbook, load_workbook
 
 class IncluirPushSelenium():
     '''Inclui processos indicados em 'lista_processos' no push do site jurisconsult,
-    podendo ser processos de 'primeiro' grau ou 'segundo' grau.'''
+    podendo ser processos de primeiro grau (1) ou segundo grau (2).'''
     def __init__(self, lista_processos='', usuario='', senha='', grau=1):
         self.lista_processos = lista_processos
         self.usuario = usuario
@@ -66,10 +66,10 @@ class IncluirPushSelenium():
         print("Logout realizado com sucesso no sistema PUSH!")
 
 if __name__ == '__main__':
-    wb = load_workbook(filename='excel/RPVs_jun_2017.xlsx', read_only=True)
-    ws = wb['RPVs']
-    range = ws['A118':'A140']
+    wb = load_workbook(filename='excel/Precatórios 2017 03 ago 2017.xlsx', read_only=True)
+    ws = wb['Plan1']
+    range = ws['A1':'A25']
     IncluirPush = IncluirPushSelenium(lista_processos=range, 
         usuario=os.environ.get('JURISCONSULT_EMAIL', 'your-email@example.com'), 
         senha=os.environ.get('JURISCONSULT_PASSWORD', 'your-password'),
-        grau=1)
+        grau=2)
