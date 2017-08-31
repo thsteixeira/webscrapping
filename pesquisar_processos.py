@@ -39,7 +39,7 @@ class PesquisarProcessoJurisconsult():
         try:
             self.contador = 1
             self.message = ""
-            for processo, in self.lista_processos:
+            for processo, in self.lista_processos:                                
                 if (str(processo.value).startswith("08")) and (len(str(processo.value))>10):
                     continue
                 while True:
@@ -56,7 +56,7 @@ class PesquisarProcessoJurisconsult():
                     with open("data/" + self.diretorio+'/html/' + str(processo.value) + '.html', 'w') as escrita:
                         escrita.write(self.html)
                     self.salva_banco(self.html, processo.value, self.message)
-                self.contador = self.contador + 1
+                self.contador = self.contador + 1                  
         except NoSuchElementException:
             if self.is_connected() == False:
                 print("Sem conexão com a internet!")
@@ -316,13 +316,13 @@ class PesquisarProcessoPJE():
 
 
 if __name__ == '__main__':
-    wb = load_workbook(filename='excel/PRECATORIOS a partir de 2012 - 24 jul 2017.xlsx', read_only=True)
+    wb = load_workbook(filename='excel/PRECATORIOS a partir de 2012 - 30 Ago 2017.xlsx', read_only=True)
     #ws = wb[wb.sheetnames[0]]
     ws = wb['TODOS']
-    range = ws['A635':'A672']
+    range = ws['A1':'A672']
     IncluirPush = PesquisarProcessoJurisconsult(lista_processos=range,
                                             tipo_de_processo="precatorio",
-                                            diretorio='PRECATORIOS a partir de 2012 - 24 jul 2017')
+                                            diretorio='PRECATORIOS a partir de 2012 - 30 Ago 2017')
 
     # wb = load_workbook(filename='excel/processos_descompressão_pje_mai_2017.xlsx', read_only=True)
     # ws = wb['PJE']
