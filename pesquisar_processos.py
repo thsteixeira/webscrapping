@@ -316,13 +316,13 @@ class PesquisarProcessoPJE():
 
 
 if __name__ == '__main__':
-    wb = load_workbook(filename='excel/RPVs_nov2017.xlsx', read_only=True)
-    #ws = wb[wb.sheetnames[0]]
-    ws = wb['TODOS']
-    range = ws['A2':'A143']
+    wb = load_workbook(filename='excel/PROCESSOS - Pedreiras e Região.xlsx', read_only=True)
+    ws = wb[wb.sheetnames[0]]
+    #ws = wb['TODOS']
+    range = ws['E3':'E960']
     IncluirPush = PesquisarProcessoJurisconsult(lista_processos=range,
                                             tipo_de_processo="primeiro_grau",
-                                            diretorio='RPVs_nov2017')
+                                            diretorio='PROCESSOS - Pedreiras e Região')
 
     # wb = load_workbook(filename='excel/processos_descompressão_pje_mai_2017.xlsx', read_only=True)
     # ws = wb['PJE']
