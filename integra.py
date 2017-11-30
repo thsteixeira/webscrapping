@@ -178,37 +178,26 @@ class DESC_PG():
                             (?, ?, ?)""", (processo, self.data, self.movimentacao))
 
 
-class PesquisarProcessoPJE():
-    '''Classe para realizar pesquisa no site PJE do TJMA dos processos listados em 'lista_processos'. 
-    Os resultados serão salvos na pasta 'diretorio'. '''
-    def __init__(self, lista_processos='', diretorio=''):
-        self.lista_processos = lista_processos
+class PesquisarClientes():
+    '''Classe para salvar as fichas de uma lista de clientes do INTEGRA.'''
+    def __init__(self, lista_clientes='', diretorio=''):
+        self.lista_clientes = lista_clientes
         self.diretorio = diretorio
         self.driver = webdriver.Chrome('chromedriver.exe')
-        self.driver.get('https://pje.tjma.jus.br/pje/ConsultaPublica/listView.seam')
+        self.driver.get('https://www.integra.adv.br')
+        self.email = "thiago@henriqueteixeira.adv.br"
+        self.senha = "Fernanda16092010"
         self.driver.implicitly_wait(3)
-        if not os.path.exists(self.diretorio):
+        if not os.path.exists("data/" + self.diretorio):
             os.makedirs("data/" + self.diretorio)
             os.makedirs("data/" + self.diretorio + "/html")
             os.makedirs("data/" + self.diretorio + "/error")
-        self.open_db()
         try:
+            self.login()
             self.contador = 1
             self.message = ""
-            for processo, in self.lista_processos:
-                while True:
-                    self.inserido = self.inserir_numero(processo.value)
-                    if self.message != "Resposta incorreta." and self.message != "Caracteres digitados de forma incorreta.":
-                        break
-                if "Consulta realizada com sucesso" in self.message:
-                    self.driver.find_element_by_xpath("//img[@title='Ver Detalhes']").click()
-                    self.driver.switch_to_window(self.driver.window_handles[-1])
-                    self.html = self.driver.page_source
-                    self.driver.close()
-                    self.driver.switch_to_window(self.driver.window_handles[0])
-                    with open("data/" + self.diretorio + '/html/' + str(processo.value) + '.html', 'w') as escrita:
-                        escrita.write(self.html)
-                    self.salva_banco(self.html, processo.value, self.message)
+            for cliente, in self.lista_clientes:
+                self.pesquisar(cliente)
                 self.contador = self.contador + 1
         except NoSuchElementException:
             if self.is_connected() == False:
@@ -220,8 +209,7 @@ class PesquisarProcessoPJE():
             self.driver.save_screenshot("data/" + self.diretorio + "/error/last_exception.png")
             print_exc()
         finally:
-            self.conn.commit()
-            self.conn.close()
+            self.logout()
             self.driver.close()
             self.driver.quit()
             pass
@@ -234,96 +222,30 @@ class PesquisarProcessoPJE():
             pass
         return False
 
-    def open_db(self):
-        self.conn = sqlite3.connect("data/" + self.diretorio + '/' + self.diretorio + '.db')
-        self.cur = self.conn.cursor()
-        self.cur.execute('''CREATE TABLE IF NOT EXISTS processos
-                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    numero_processo TEXT UNIQUE, vara TEXT, dias_parados INTEGER, mensagem_download TEXT)''')
-        self.cur.execute('''CREATE TABLE IF NOT EXISTS andamentos (numero_processo TEXT, data TEXT, 
-                    andamento TEXT, FOREIGN KEY(numero_processo) REFERENCES processos(numero_processo))''')
+    def login(self):
+        self.driver.find_element_by_id('login_email').send_keys(self.email)
+        self.driver.find_element_by_id('login_senha').send_keys(self.senha)
+        self.driver.find_element_by_xpath("//button[@type='submit']").click()
+        self.driver.find_element_by_xpath("//a[text()='Fechar(X)']").click()
 
-    def inserir_numero(self, numero):
-        self.campo_numero = self.driver.find_element_by_id('fPP:numProcessoDecoration:numProcesso')
-        self.campo_numero.clear()
-        self.campo_numero.send_keys(numero.replace("8.10",""))
-        self.captcha_element = self.driver.find_element_by_id("fPP:j_id140:captchaImg")
-        self.captcha = self.handle_captcha_pje(self.captcha_element, numero)
-        self.driver.find_element_by_id('fPP:j_id140:verifyCaptcha').send_keys(self.captcha)
-        self.driver.find_element_by_id('fPP:searchProcessos').click()
-        try:
-            #MENSAGEM DE QUE ERROU O CAPTCHA
-            self.message = self.driver.find_element_by_xpath("//div[@id='fPP:j_id140:fieldDiv']/span[@class='errorFields errors']").text
-        except:
-            pass
-        try:
-            #MENSAGEM DE QUE NÃO ENCONTROU O PROCESSO
-            self.message = self.driver.find_element_by_xpath("//*[contains(text(), 'Sua pesquisa não encontrou nenhum processo disponível.')]").text
-        except:
-            pass
-        try:
-            #MENSAGEM DE SUCESSO NA PESQUISA
-            self.driver.find_element_by_xpath("//img[@title='Ver Detalhes']")
-            self.message = "Consulta realizada com sucesso."
-        except:
-            pass
-        print("Processo:", numero, "-", self.message)
-        if self.message == "Resposta incorreta.":
-            copyfile("data/" + self.diretorio+"/captcha_" + str(numero) + ".png", self.diretorio + "/error/captcha_" + str(numero) + ".png")
-        os.remove("data/" + self.diretorio+"/captcha_" + str(numero) + ".png")
+    def logout(self):
+        self.driver.find_element_by_xpath("//p[@class='menufechar']").click()
 
-    def handle_captcha_pje(self, img, numero):
-        self.screenshot_filename = "data/" + self.diretorio + "/screenshot_" + str(numero) + ".png"
-        self.captcha_filename = "data/" + self.diretorio + "/captcha_" + str(numero) + ".png"
-        self.location = img.location
-        self.size = img.size
-        self.driver.save_screenshot(self.screenshot_filename)
-        self.screenshot = Image.open(self.screenshot_filename)
-        self.left = self.location['x']
-        self.top = self.location['y']
-        self.right = self.location['x'] + self.size['width']
-        self.bottom = self.location['y'] + self.size['height']
-        self.captcha_img = self.screenshot.crop((self.left, self.top, self.right, self.bottom))
-        self.screenshot.close()
-        self.captcha_img, solution = solve_captcha_pje(self.captcha_img)
-        self.captcha_img.save(self.captcha_filename)
-        os.remove(self.screenshot_filename)
-        return solution
-
-    def salva_banco(self, html, processo, message):
-        self.page_soup = BeautifulSoup(html, 'html.parser')
-        self.vara = self.page_soup.find(text=re.compile('Vara')).strip()
-        try:
-            self.cur.execute("""INSERT INTO processos (numero_processo, vara, mensagem_download) VALUES
-                            (?, ?, ?)""", (processo, self.vara, message))
-        except sqlite3.IntegrityError:
-            print_exc()
-            return
-        self.primeira_movimentacao = self.page_soup.find('span', {"id": re.compile('^j_id62:processoEvento:')}).text
-        self.ultima_data = self.primeira_movimentacao[:10]
-        self.qnt_dias = datetime.now() - datetime.strptime(self.ultima_data, "%d/%m/%Y")
-        self.qnt_dias = str(self.qnt_dias.days)
-        self.cur.execute("""UPDATE processos SET
-                    dias_parados = ? WHERE numero_processo = ?""", (self.qnt_dias, processo))
-        self.movimentacoes = self.page_soup.find_all('span', {"id": re.compile('^j_id62:processoEvento:')})
-        for movimentacao in self.movimentacoes:
-            self.data = movimentacao.text[:10]
-            self.movimentacao = movimentacao.text.split(" - ")[1]
-            self.cur.execute("""INSERT INTO andamentos (numero_processo, data, andamento) VALUES 
-                            (?, ?, ?)""", (processo, self.data, self.movimentacao))
-
+    def pesquisar(self, cliente):
+        self.driver.find_element_by_xpath("//p[text()='  Pesquisar Cliente   ']").click()
 
 if __name__ == '__main__':
-    wb = load_workbook(filename='excel/PRECATORIOS a partir de 2012 - 30 Ago 2017.xlsx', read_only=True)
-    #ws = wb[wb.sheetnames[0]]
-    ws = wb['TODOS']
-    range = ws['A1':'A672']
-    IncluirPush = PesquisarProcessoJurisconsult(lista_processos=range,
-                                            tipo_de_processo="precatorio",
-                                            diretorio='PRECATORIOS a partir de 2012 - 30 Ago 2017')
+    # wb = load_workbook(filename='excel/PRECATORIOS a partir de 2012 - 30 Ago 2017.xlsx', read_only=True)
+    # #ws = wb[wb.sheetnames[0]]
+    # ws = wb['TODOS']
+    # range = ws['A1':'A672']
+    # IncluirPush = PesquisarProcessoJurisconsult(lista_processos=range,
+    #                                         tipo_de_processo="precatorio",
+    #                                         diretorio='PRECATORIOS a partir de 2012 - 30 Ago 2017')
 
-    # wb = load_workbook(filename='excel/processos_descompressão_pje_mai_2017.xlsx', read_only=True)
-    # ws = wb['PJE']
-    # range = ws['C102':'C2199']
-    # IncluirPush = PesquisarProcessoPJE(lista_processos=range,
-    #                                     diretorio='processos_descompressão_pje_mai_2017')
+    wb = load_workbook(filename='excel/CLIENTES - Pedreiras e Região.xlsx', read_only=True)
+    #ws = wb['PJE']
+    ws = wb[wb.sheetnames[0]]
+    range = ws['A2':'A1320']
+    IncluirPush = PesquisarClientes(lista_clientes=range,
+                                        diretorio='CLIENTES - Pedreiras e Região')
