@@ -185,8 +185,8 @@ class PesquisarClientes():
         self.diretorio = diretorio
         self.driver = webdriver.Chrome('chromedriver.exe')
         self.driver.get('https://www.integra.adv.br')
-        self.email = "thiago@henriqueteixeira.adv.br"
-        self.senha = "Fernanda16092010"
+        self.email = os.environ.get('INTEGRA_EMAIL', 'your-email@example.com')
+        self.senha = os.environ.get('INTEGRA_PASSWORD', 'your-password')
         self.driver.implicitly_wait(3)
         if not os.path.exists("data/" + self.diretorio):
             os.makedirs("data/" + self.diretorio)
